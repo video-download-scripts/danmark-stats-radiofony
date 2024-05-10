@@ -35,8 +35,6 @@ fi
 USER="$(logname)" # http://support.matrix.lan/articles/REM-A-177
 HOME="/home/${USER}"
 
-echo "$USER"
-
 # Determine if this OS is Debian or Redhat based. This is required to now
 # if we should be using apt-get or yum to install deps.
 # For now we only support Debian based systems (dpkg|apt).
