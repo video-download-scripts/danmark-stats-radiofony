@@ -123,7 +123,10 @@ tar -xvf ffmpeg-master-latest-linux64-gpl.tar.xz -C "$HOME/bin/ffmpeg"
 chown -R "$USER:$USER" "$HOME/bin/"
 
 # Move the ffmpeg executables to the root of $HOME/bin
-mv ffmpeg-master-latest-linux64-gpl/bin/ff* "$HOME/bin/"
+echo
+echo "$HOME/bin/"
+echo
+mv ffmpeg-master-latest-linux64-gpl/bin/** "$HOME/bin/"
 
 # Delete no longer needed folder files
 rm -fr ./ffmpeg/ ./ffmpeg-master-latest-linux64-gpl.tar.xz ./ffmpeg-master-latest-linux64-gpl
