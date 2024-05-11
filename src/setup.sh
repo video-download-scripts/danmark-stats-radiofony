@@ -86,12 +86,15 @@ apt-fast update -yq
 apt-fast install -yq curl tar python3.11 python3-pip python3-pip-whl mkvtoolnix
 
 # Install mypdns python module to boost download counter
-python3.11 -m pip install --user -r "$GIT_DIR/requirements.txt"
+if [ "$OS" == "ubuntu" ]; then
+    python3.11 -m pip install --user -r "$GIT_DIR/requirements.txt"
+elif [ "$OS" == debian ]; then
+    python3.11 -m pip install --user -r "$GIT_DIR/requirements.txt" --break-system-pakages
+fi
 
 # Make $HOME/bin/ directory to run local binaries
 
 mkdir -p "$HOME/bin/ffmpeg/"
-chown -R "$USER:$USER" "$HOME/bin/"
 
 # set PATH to includes user's private bin, if it exists, and before
 # default PATH
@@ -110,15 +113,20 @@ curl --request GET -sL \
     --output "$HOME/bin/yt-dlp"
 sudo chmod +x "$HOME/bin/yt-dlp"
 
+cd "$HOME/bin" || exit
+
 # Download yt-dlp's compiled ffmpeg
 curl --request GET -sL \
     --url 'https://github.com/yt-dlp/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-linux64-gpl.tar.xz' \
-    --output "$HOME/bin/ffmpeg.tar.xz"
+    --output "ffmpeg-master-latest-linux64-gpl.tar.xz"
 # wget "https://github.com/yt-dlp/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-linux64-gpl.tar.xz"
-tar -xvf ffmpeg-master-latest-linux64-gpl.tar.xz --directory "$HOME/bin/ffmpeg/"
+tar -xvf ffmpeg-master-latest-linux64-gpl.tar.xz
+
+# set user as owner of ~/bin/ and files within
+chown -R "$USER:$USER" "$HOME/bin/"
 
 # Move the ffmpeg executables to the root of $HOME/bin
-mv ffmpeg/bin/* "$HOME/bin"
+mv ffmpeg-master-latest-linux64-gpl/bin/* "$HOME/bin"
 
 # Delete no longer needed folder files
-rm -fr ./ffmpeg ./ffmpeg.tar.xz
+rm -fr ./ffmpeg-master-latest-linux64-gpl ./ffmpeg-master-latest-linux64-gpl.tar.xz
