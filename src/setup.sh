@@ -26,9 +26,9 @@ PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
 # shellcheck disable=SC2050
 # shellcheck disable=SC2046
-if [ $(id -u) -ne 0 ]; then
-    echo Please run this script as root or using sudo!
-    exit
+if [ "$(whoami)" != "root" ]; then
+    echo "Please run this script as root or using sudo!"
+    exit 1
 fi
 
 # Variables
@@ -37,9 +37,55 @@ HOME="/home/${USER}"
 
 # Determine if this OS is Debian or Redhat based. This is required to now
 # if we should be using apt-get or yum to install deps.
-# For now we only support Debian based systems (dpkg|apt).
+# For now, we only support Debian and BSD based OS (dpkg|apt-get).
 
-sudo apt-get install -y curl tar python3.11
+# Setup mkvToolNix repo
+# First we import the gpg keyfile
+if [ ! -f /usr/share/keyrings/gpg-pub-moritzbunkus.gpg ]; then
+    curl --request GET -sL \
+        --url 'https://mkvtoolnix.download/gpg-pub-moritzbunkus.gpg' \
+        --output '/usr/share/keyrings/gpg-pub-moritzbunkus.gpg'
+fi
+
+# determine the OS and Version
+if [ -f /etc/os-release ]; then
+    # freedesktop.org and systemd
+    . /etc/os-release
+    OS=$ID
+    codeName=$VERSION_CODENAME
+elif type lsb_release >/dev/null 2>&1; then
+    # linuxbase.org
+    OS=$(lsb_release -si)
+    codeName=$(lsb_release -sc)
+elif [ -f /etc/lsb-release ]; then
+    # For some versions of Debian/Ubuntu without lsb_release command
+    . /etc/lsb-release
+    OS=$DISTRIB_ID
+    codeName=$DISTRIB_CODENAME
+fi
+
+# Ensure OS name is lowercased
+OS="${OS,,}"
+codeName="${codeName,,}"
+
+# Setup the apt.source
+if [ "$OS" == "ubuntu" ]; then
+    echo -n "deb [arch=amd64 signed-by=/usr/share/keyrings/gpg-pub-moritzbunkus.gpg] https://mkvtoolnix.download/ubuntu/ $codeName main" | tee >/etc/apt/sources.list.d/mkvtoolnix.download.list >/dev/null 2>&1
+    echo -n "deb-src [arch=amd64 signed-by=/usr/share/keyrings/gpg-pub-moritzbunkus.gpg] https://mkvtoolnix.download/ubuntu/ $codeName main" | tee >>/etc/apt/sources.list.d/mkvtoolnix.download.list >/dev/null 2>&1
+elif [ "$OS" == debian ]; then
+    echo -n "deb [signed-by=/usr/share/keyrings/gpg-pub-moritzbunkus.gpg] https://mkvtoolnix.download/debian/ $codeName main" | tee >/etc/apt/sources.list.d/mkvtoolnix.download.list >/dev/null 2>&1
+    echo -n "deb-src [signed-by=/usr/share/keyrings/gpg-pub-moritzbunkus.gpg] https://mkvtoolnix.download/debian/ $codeName main" | tee >>/etc/apt/sources.list.d/mkvtoolnix.download.list >/dev/null 2>&1
+fi
+
+# Update and install deps
+export DEBIAN_FRONTEND=noninteractive
+bash -c "$(curl -sL https://raw.githubusercontent.com/ilikenwf/apt-fast/master/quick-install.sh)"
+
+apt-fast update -yq
+apt-fast install -yq curl tar python3.11 python3-pip python3-pip-whl mkvtoolnix
+
+# Install mypdns python module to boost download counter
+python3.11 -m pip3 install --user -r requirements.txt
 
 # Make $HOME/bin/ directory to run local binaries
 
@@ -67,10 +113,10 @@ curl --request GET -sL \
     --url 'https://github.com/yt-dlp/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-linux64-gpl.tar.xz' \
     --output "$HOME/bin/ffmpeg.tar.xz"
 # wget "https://github.com/yt-dlp/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-linux64-gpl.tar.xz"
-tar -xvf ffmpeg.tar.xz --directory "$HOME/bin/ffmpeg"
+tar -xvf ffmpeg.tar.xz --directory "$HOME/bin/ffmpeg/"
 
 # Move the ffmpeg executables to the root of $HOME/bin
 mv ffmpeg/bin/* "$HOME/bin"
 
 # Delete no longer needed folder files
-rm -fr ffmpeg ffmpeg.tar.xz
+rm -fr ./ffmpeg ./ffmpeg.tar.xz
