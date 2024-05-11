@@ -106,7 +106,7 @@ fi
 cd "$HOME/bin/" || exit
 
 # Download yt-dlp and set executive bit
-curl --request GET -sL \
+curl --request GET -sSL \
     --url 'https://github.com/yt-dlp/yt-dlp/releases/download/2024.04.09/yt-dlp' \
     --output "$HOME/bin/yt-dlp"
 sudo chmod a+x "$HOME/bin/yt-dlp"
@@ -114,16 +114,16 @@ sudo chmod a+x "$HOME/bin/yt-dlp"
 cd "$HOME/bin/" || exit
 
 # Download yt-dlp's compiled ffmpeg
-curl --request GET -sL \
+curl --request GET -sSL \
     --url 'https://github.com/yt-dlp/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-linux64-gpl.tar.xz' \
     --output "ffmpeg-master-latest-linux64-gpl.tar.xz"
-tar -xvf ffmpeg-master-latest-linux64-gpl.tar.xz
+tar -xvf ffmpeg-master-latest-linux64-gpl.tar.xz -C "$HOME/bin/ffmpeg"
 
 # set user as owner of ~/bin/ and files within
 chown -R "$USER:$USER" "$HOME/bin/"
 
 # Move the ffmpeg executables to the root of $HOME/bin
-mv ffmpeg-master-latest-linux64-gpl/bin/* "$HOME/bin/"
+mv ffmpeg-master-latest-linux64-gpl/bin/ff* "$HOME/bin/"
 
 # Delete no longer needed folder files
-rm -fr ./ffmpeg/ ./ffmpeg-master-latest-linux64-gpl.tar.xz
+rm -fr ./ffmpeg/ ./ffmpeg-master-latest-linux64-gpl.tar.xz ./ffmpeg-master-latest-linux64-gpl
