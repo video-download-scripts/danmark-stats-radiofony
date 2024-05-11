@@ -34,6 +34,7 @@ fi
 # Variables
 USER="$(logname)" # http://support.matrix.lan/articles/REM-A-177
 HOME="/home/${USER}"
+GIT_DIR="$(git rev-parse --show-toplevel)"
 
 # Determine if this OS is Debian or Redhat based. This is required to now
 # if we should be using apt-get or yum to install deps.
@@ -85,11 +86,12 @@ apt-fast update -yq
 apt-fast install -yq curl tar python3.11 python3-pip python3-pip-whl mkvtoolnix
 
 # Install mypdns python module to boost download counter
-python3.11 -m pip3 install --user -r requirements.txt
+python3.11 -m pip install --user -r "$GIT_DIR/requirements.txt"
 
 # Make $HOME/bin/ directory to run local binaries
 
-mkdir -p "$HOME/bin"
+mkdir -p "$HOME/bin/ffmpeg/"
+chown -R "$USER:$USER" "$HOME/bin/"
 
 # set PATH to includes user's private bin, if it exists, and before
 # default PATH
@@ -113,7 +115,7 @@ curl --request GET -sL \
     --url 'https://github.com/yt-dlp/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-linux64-gpl.tar.xz' \
     --output "$HOME/bin/ffmpeg.tar.xz"
 # wget "https://github.com/yt-dlp/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-linux64-gpl.tar.xz"
-tar -xvf ffmpeg.tar.xz --directory "$HOME/bin/ffmpeg/"
+tar -xvf ffmpeg-master-latest-linux64-gpl.tar.xz --directory "$HOME/bin/ffmpeg/"
 
 # Move the ffmpeg executables to the root of $HOME/bin
 mv ffmpeg/bin/* "$HOME/bin"
