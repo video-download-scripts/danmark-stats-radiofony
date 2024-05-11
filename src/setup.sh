@@ -89,7 +89,7 @@ apt-fast install -yq curl tar python3.11 python3-pip python3-pip-whl mkvtoolnix
 if [ "$OS" == "ubuntu" ]; then
     python3.11 -m pip install --user -r "$GIT_DIR/requirements.txt"
 elif [ "$OS" == debian ]; then
-    python3.11 -m pip install --user -r "$GIT_DIR/requirements.txt" --break-system-pakages
+    python3.11 --break-system-pakages -m pip install --user -r "$GIT_DIR/requirements.txt"
 fi
 
 # Make $HOME/bin/ directory to run local binaries
@@ -126,7 +126,7 @@ tar -xvf ffmpeg-master-latest-linux64-gpl.tar.xz
 chown -R "$USER:$USER" "$HOME/bin/"
 
 # Move the ffmpeg executables to the root of $HOME/bin
-mv ffmpeg-master-latest-linux64-gpl/bin/* "$HOME/bin"
+mv ffmpeg-master-latest-linux64-gpl/bin/* "$HOME/bin/"
 
 # Delete no longer needed folder files
-rm -fr ./ffmpeg-master-latest-linux64-gpl ./ffmpeg-master-latest-linux64-gpl.tar.xz
+rm -fr ./ffmpeg/ ./ffmpeg-master-latest-linux64-gpl.tar.xz
