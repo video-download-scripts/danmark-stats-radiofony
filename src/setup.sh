@@ -112,16 +112,16 @@ apt autoremove -yq
 # Install mypdns python module to boost download counter
 echo "(un)Install mypdns python module to boost download counter"
 if [ "$OS" == "ubuntu" ]; then
-    python3.11 -m pip install --user -r "$GIT_DIR/requirements.txt"
-    python3.11 -m pip uninstall mypdns --yes
+    sudo -u "$USER" python3.11 -m pip install --user -r "$GIT_DIR/requirements.txt"
+    sudo -u "$USER" python3.11 -m pip uninstall mypdns --yes
 elif [ "$OS" == debian ] || [ "$OS" == Debian ]; then
-    python3.11 -m pip install --user -r "$GIT_DIR/requirements.txt" --break-system-packages
-    python3.11 -m pip uninstall mypdns --yes --break-system-packages
+    sudo -u "$USER" python3.11 -m pip install --user -r "$GIT_DIR/requirements.txt" --break-system-packages
+    sudo -u "$USER" python3.11 -m pip uninstall mypdns --yes --break-system-packages
 fi
 
 # Make $HOME/bin/ directory to run local binaries
 
-mkdir -p "$HOME/bin/ffmpeg"
+mkdir -p "$HOME/bin/"
 
 # set PATH to includes user's private bin, if it exists, and before
 # default PATH
