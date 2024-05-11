@@ -88,13 +88,11 @@ apt-fast install -yq curl tar python3.11 python3-pip python3-pip-whl mkvtoolnix
 # Install mypdns python module to boost download counter
 if [ "$OS" == "ubuntu" ]; then
     python3.11 -m pip install --user -r "$GIT_DIR/requirements.txt"
-elif [ "$OS" == debian ]; then
-    python3.11 --break-system-pakages -m pip install --user -r "$GIT_DIR/requirements.txt"
 fi
 
 # Make $HOME/bin/ directory to run local binaries
 
-mkdir -p "$HOME/bin/ffmpeg/"
+mkdir -p "$HOME/bin/ffmpeg"
 
 # set PATH to includes user's private bin, if it exists, and before
 # default PATH
@@ -105,21 +103,20 @@ fi
 # Download yt-dlp + yt-dlp ffmpeg variant to download encrypted contents from
 # Danmarks Radio
 
-cd "$HOME/bin" || exit
+cd "$HOME/bin/" || exit
 
 # Download yt-dlp and set executive bit
 curl --request GET -sL \
     --url 'https://github.com/yt-dlp/yt-dlp/releases/download/2024.04.09/yt-dlp' \
     --output "$HOME/bin/yt-dlp"
-sudo chmod +x "$HOME/bin/yt-dlp"
+sudo chmod a+x "$HOME/bin/yt-dlp"
 
-cd "$HOME/bin" || exit
+cd "$HOME/bin/" || exit
 
 # Download yt-dlp's compiled ffmpeg
 curl --request GET -sL \
     --url 'https://github.com/yt-dlp/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-linux64-gpl.tar.xz' \
     --output "ffmpeg-master-latest-linux64-gpl.tar.xz"
-# wget "https://github.com/yt-dlp/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-linux64-gpl.tar.xz"
 tar -xvf ffmpeg-master-latest-linux64-gpl.tar.xz
 
 # set user as owner of ~/bin/ and files within
