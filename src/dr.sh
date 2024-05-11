@@ -68,8 +68,8 @@ fi
 read -erp "Location of URI list: " URI
 
 if [ -f "${URI}" ]; then
-    grep -vE '^($|#)' "${URI}" >"/tmp/${URI}.tmp"
-    sourceUri="/tmp/${URI}.tmp"
+    grep -vE '^($|#)' "${URI}" >"${URI}.tmp"
+    sourceUri="${URI}.tmp"
 fi
 
 if [ -r "${sourceUri}" ]; then
