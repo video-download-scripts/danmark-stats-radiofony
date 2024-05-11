@@ -71,11 +71,11 @@ codeName="${codeName,,}"
 
 # Setup the apt.source
 if [ "$OS" == "ubuntu" ]; then
-    echo -n "deb [arch=amd64 signed-by=/usr/share/keyrings/gpg-pub-moritzbunkus.gpg] https://mkvtoolnix.download/ubuntu/ $codeName main" | tee -a /etc/apt/sources.list.d/mkvtoolnix.download.list >/dev/null 2>&1
-    echo -n "deb-src [arch=amd64 signed-by=/usr/share/keyrings/gpg-pub-moritzbunkus.gpg] https://mkvtoolnix.download/ubuntu/ $codeName main" | tee -a >/etc/apt/sources.list.d/mkvtoolnix.download.list >/dev/null 2>&1
-elif [ "$OS" == debian ]; then
-    echo -n "deb [signed-by=/usr/share/keyrings/gpg-pub-moritzbunkus.gpg] https://mkvtoolnix.download/debian/ $codeName main" | tee -a /etc/apt/sources.list.d/mkvtoolnix.download.list >/dev/null 2>&1
-    echo -n "deb-src [signed-by=/usr/share/keyrings/gpg-pub-moritzbunkus.gpg] https://mkvtoolnix.download/debian/ $codeName main" | tee -a >/etc/apt/sources.list.d/mkvtoolnix.download.list >/dev/null 2>&1
+    echo -n "deb [arch=amd64 signed-by=/usr/share/keyrings/gpg-pub-moritzbunkus.gpg] https://mkvtoolnix.download/ubuntu/ $codeName main" | tee -a /etc/apt/sources.list.d/mkvtoolnix.download.list >/dev/null
+    echo -n "deb-src [arch=amd64 signed-by=/usr/share/keyrings/gpg-pub-moritzbunkus.gpg] https://mkvtoolnix.download/ubuntu/ $codeName main" | tee -a /etc/apt/sources.list.d/mkvtoolnix.download.list >/dev/null
+elif [ "$OS" == debian ] || [ "$OS" == Debian ]; then
+    echo -n "deb [signed-by=/usr/share/keyrings/gpg-pub-moritzbunkus.gpg] https://mkvtoolnix.download/debian/ $codeName main" | tee -a /etc/apt/sources.list.d/mkvtoolnix.download.list >/dev/null
+    echo -n "deb-src [signed-by=/usr/share/keyrings/gpg-pub-moritzbunkus.gpg] https://mkvtoolnix.download/debian/ $codeName main" | tee -a /etc/apt/sources.list.d/mkvtoolnix.download.list >/dev/null
 fi
 
 # Update and install deps
