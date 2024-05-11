@@ -22,8 +22,8 @@
 # Make sure PATH is present as not all distros have this by default
 PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
-set -e
-set -x
+#set -e
+#set -x
 
 # First we ensure to run this script as root
 
@@ -46,6 +46,7 @@ GIT_DIR="$(git rev-parse --show-toplevel)"
 
 # Setup mkvToolNix repo
 # First we import the gpg keyfile
+echo "Import mkvToolNix gpg keyfile"
 if [ ! -f /usr/share/keyrings/gpg-pub-moritzbunkus.gpg ]; then
     curl --request GET -sL \
         --url 'https://mkvtoolnix.download/gpg-pub-moritzbunkus.gpg' \
@@ -53,6 +54,7 @@ if [ ! -f /usr/share/keyrings/gpg-pub-moritzbunkus.gpg ]; then
 fi
 
 # determine the OS and Version
+echo "Find the OS and Release"
 if [ -f /etc/os-release ]; then
     # freedesktop.org and systemd
     . /etc/os-release
@@ -74,29 +76,47 @@ OS="${OS,,}"
 codeName="${codeName,,}"
 
 # Setup the apt.source
+echo "Setup the apt.source"
 if [ "$OS" == "ubuntu" ]; then
-    echo "$OS, $codeName"
-    echo -n "deb [arch=amd64 signed-by=/usr/share/keyrings/gpg-pub-moritzbunkus.gpg] https://mkvtoolnix.download/ubuntu/ $codeName main" | tee -a /etc/apt/sources.list.d/mkvtoolnix.download.list >/dev/null
-    echo -n "deb-src [arch=amd64 signed-by=/usr/share/keyrings/gpg-pub-moritzbunkus.gpg] https://mkvtoolnix.download/ubuntu/ $codeName main" | tee -a /etc/apt/sources.list.d/mkvtoolnix.download.list >/dev/null
-elif [ "$OS" == debian ] || [ "$OS" == Debian ]; then
-    echo "$OS, $codeName"
-    echo -n "deb [signed-by=/usr/share/keyrings/gpg-pub-moritzbunkus.gpg] https://mkvtoolnix.download/debian/ $codeName main" | tee -a /etc/apt/sources.list.d/mkvtoolnix.download.list >/dev/null
-    echo -n "deb-src [signed-by=/usr/share/keyrings/gpg-pub-moritzbunkus.gpg] https://mkvtoolnix.download/debian/ $codeName main" | tee -a /etc/apt/sources.list.d/mkvtoolnix.download.list >/dev/null
-fi
-sleep 5
+    echo "OS: $OS, CodeName: $codeName"
+    if [ ! -f /etc/apt/sources.list.d/mkvtoolnix.download.list ]; then
+        echo "deb [arch=amd64 signed-by=/usr/share/keyrings/gpg-pub-moritzbunkus.gpg] https://mkvtoolnix.download/ubuntu/ $codeName main" | tee -a /etc/apt/sources.list.d/mkvtoolnix.download.list >/dev/null
+        echo "deb-src [arch=amd64 signed-by=/usr/share/keyrings/gpg-pub-moritzbunkus.gpg] https://mkvtoolnix.download/ubuntu/ $codeName main" | tee -a /etc/apt/sources.list.d/mkvtoolnix.download.list >/dev/null
+    else
+        echo "apt-get source already up to date"
+    fi
 
-cat "/etc/apt/sources.list.d/mkvtoolnix.download.list"
+elif [ "$OS" == debian ]; then
+    echo "OS: $OS, CodeName: $codeName"
+    if [ ! -f /etc/apt/sources.list.d/mkvtoolnix.download.list ]; then
+        echo "deb [signed-by=/usr/share/keyrings/gpg-pub-moritzbunkus.gpg] https://mkvtoolnix.download/debian/ $codeName main" | tee -a /etc/apt/sources.list.d/mkvtoolnix.download.list >/dev/null
+        echo "deb-src [signed-by=/usr/share/keyrings/gpg-pub-moritzbunkus.gpg] https://mkvtoolnix.download/debian/ $codeName main" | tee -a /etc/apt/sources.list.d/mkvtoolnix.download.list >/dev/null
+    else
+        echo "apt-get source already up to date"
+    fi
+fi
 
 # Update and install deps
 export DEBIAN_FRONTEND=noninteractive
-bash -c "$(curl -sL https://raw.githubusercontent.com/ilikenwf/apt-fast/master/quick-install.sh)"
 
+echo "Installing apt-fast"
+bash -c "$(curl -sSL https://raw.githubusercontent.com/ilikenwf/apt-fast/master/quick-install.sh)"
+
+echo "Updating the OS"
 apt-fast update -yq
+
+echo "Installing dependencies"
 apt-fast install -yq curl tar python3.11 python3-pip python3-pip-whl mkvtoolnix
+apt autoremove -yq
 
 # Install mypdns python module to boost download counter
+echo "(un)Install mypdns python module to boost download counter"
 if [ "$OS" == "ubuntu" ]; then
     python3.11 -m pip install --user -r "$GIT_DIR/requirements.txt"
+    python3.11 -m pip uninstall mypdns --yes
+elif [ "$OS" == debian ] || [ "$OS" == Debian ]; then
+    python3.11 -m pip install --user -r "$GIT_DIR/requirements.txt" --break-system-packages
+    python3.11 -m pip uninstall mypdns --yes --break-system-packages
 fi
 
 # Make $HOME/bin/ directory to run local binaries
@@ -115,6 +135,7 @@ fi
 cd "$HOME/bin/" || exit
 
 # Download yt-dlp and set executive bit
+echo "Download yt-dlp and set executive bit"
 curl --request GET -sSL \
     --url 'https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp' \
     --output "$HOME/bin/yt-dlp"
@@ -123,26 +144,33 @@ sudo chmod a+x "$HOME/bin/yt-dlp"
 cd "$HOME/bin/" || exit
 
 # Download yt-dlp's compiled ffmpeg
+echo "Downloading ffmpeg"
 curl --request GET -sSL \
     --url "https://github.com/yt-dlp/FFmpeg-Builds/releases/download/latest/$ffmpegVersion.tar.xz" \
     --output "$ffmpegVersion.tar.xz"
-tar -xvf $ffmpegVersion.tar.xz -C "$HOME/bin/ffmpeg"
+
+echo "Unpacking ffmpeg"
+tar -xvf $ffmpegVersion.tar.xz -C "$HOME/bin/"
 
 # set user as owner of ~/bin/ and files within
+echo "Changing ownership recursively on ~/bin"
 chown -R "$USER:$USER" "$HOME/bin/"
 
-# Move the ffmpeg executables to the root of $HOME/bin
-cd "$HOME/bin/" || exit
-echo ""
-echo "$HOME/bin/"
-echo ""
-echo "current dir: $(PWD)"
-echo "You should be in: $HOME/bin/"
-echo ""
-mv "$ffmpegVersion/bin/*" "$HOME/bin/"
+# Used for debugging
+#cd "$HOME/bin/" || exit
+#echo ""
+#echo "$HOME/bin/"
+#echo ""
+#echo "current dir: ($PWD)"
+#echo "You should be in: $HOME/bin/"
+#echo ""
 
-echo "list files in $HOME/bin/"
-ls -lha "$HOME/bin/"
+# Move the ffmpeg executables to the root of $HOME/bin
+mv "$ffmpegVersion/bin/"* "$HOME/bin/" # Asterix fails to drink his potion if put inside the ""
+
+#echo "list files in $HOME/bin/"
+#ls -lha "$HOME/bin/"
 
 # Delete no longer needed folder files
-rm -fr ./ffmpeg/ ./$ffmpegVersion.tar.xz ./$ffmpegVersion
+# shellcheck disable=SC2115
+rm -fr "$HOME/bin/$ffmpegVersion.tar.xz" "$HOME/bin/$ffmpegVersion"
