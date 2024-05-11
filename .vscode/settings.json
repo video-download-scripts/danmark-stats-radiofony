@@ -1,0 +1,24 @@
+{
+    "title": "Den Danske Stats Radiofony",
+    "description": "Script to download from Den Danske Stats Radiofony (DDR) with yt-dlp",
+    "editor.formatOnPaste": true,
+    "editor.formatOnSave": true,
+    "editor.formatOnSaveMode": "modificationsIfAvailable",
+    "editor.formatOnType": true,
+    "editor.tabSize": 4,
+    "diffEditor.ignoreTrimWhitespace": false,
+    "workbench.colorCustomizations": {
+        "editorLineNumber.foreground": "#00ff00"
+    },
+    "files.eol": "\n",
+    "files.trimTrailingWhitespace": true,
+    "files.trimFinalNewlines": true,
+    "files.insertFinalNewline": true,
+    "git.alwaysSignOff": true,
+    "git.autofetch": true,
+    "git.enableSmartCommit": true,
+    "git.enableCommitSigning": true,
+    "git.fetchOnPull": true,
+    "markdown.extension.completion.enabled": true,
+    "shellcheck.useWorkspaceRootAsCwd": true
+}

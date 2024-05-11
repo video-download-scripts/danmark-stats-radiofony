@@ -31,7 +31,7 @@ if [ $(id -u) -ne 0 ]; then
     exit
 fi
 
-# Vars
+# Variables
 USER="$(logname)" # http://support.matrix.lan/articles/REM-A-177
 HOME="/home/${USER}"
 
@@ -45,7 +45,8 @@ sudo apt-get install -y curl tar python3.11
 
 mkdir -p "$HOME/bin"
 
-# set PATH so it includes user's private bin if it exists before default PATH
+# set PATH to includes user's private bin, if it exists, and before
+# default PATH
 if [ -d "$HOME/bin" ]; then
     PATH="$HOME/bin:$PATH"
 fi
