@@ -22,6 +22,9 @@
 # Make sure PATH is present as not all distros have this by default
 PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
+set -e
+set -x
+
 # First we ensure to run this script as root
 
 # shellcheck disable=SC2050
@@ -32,7 +35,8 @@ if [ "$(whoami)" != "root" ]; then
 fi
 
 # Variables
-USER="$(logname)" # http://support.matrix.lan/articles/REM-A-177
+ffmpegVersion="ffmpeg-master-latest-linux64-gpl" # DO NOT ADD EXTENSION
+USER="$(logname)"                                # http://support.matrix.lan/articles/REM-A-177
 HOME="/home/${USER}"
 GIT_DIR="$(git rev-parse --show-toplevel)"
 
@@ -71,12 +75,17 @@ codeName="${codeName,,}"
 
 # Setup the apt.source
 if [ "$OS" == "ubuntu" ]; then
+    echo "$OS, $codeName"
     echo -n "deb [arch=amd64 signed-by=/usr/share/keyrings/gpg-pub-moritzbunkus.gpg] https://mkvtoolnix.download/ubuntu/ $codeName main" | tee -a /etc/apt/sources.list.d/mkvtoolnix.download.list >/dev/null
     echo -n "deb-src [arch=amd64 signed-by=/usr/share/keyrings/gpg-pub-moritzbunkus.gpg] https://mkvtoolnix.download/ubuntu/ $codeName main" | tee -a /etc/apt/sources.list.d/mkvtoolnix.download.list >/dev/null
 elif [ "$OS" == debian ] || [ "$OS" == Debian ]; then
+    echo "$OS, $codeName"
     echo -n "deb [signed-by=/usr/share/keyrings/gpg-pub-moritzbunkus.gpg] https://mkvtoolnix.download/debian/ $codeName main" | tee -a /etc/apt/sources.list.d/mkvtoolnix.download.list >/dev/null
     echo -n "deb-src [signed-by=/usr/share/keyrings/gpg-pub-moritzbunkus.gpg] https://mkvtoolnix.download/debian/ $codeName main" | tee -a /etc/apt/sources.list.d/mkvtoolnix.download.list >/dev/null
 fi
+sleep 5
+
+cat "/etc/apt/sources.list.d/mkvtoolnix.download.list"
 
 # Update and install deps
 export DEBIAN_FRONTEND=noninteractive
@@ -107,7 +116,7 @@ cd "$HOME/bin/" || exit
 
 # Download yt-dlp and set executive bit
 curl --request GET -sSL \
-    --url 'https://github.com/yt-dlp/yt-dlp/releases/download/2024.04.09/yt-dlp' \
+    --url 'https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp' \
     --output "$HOME/bin/yt-dlp"
 sudo chmod a+x "$HOME/bin/yt-dlp"
 
@@ -115,18 +124,25 @@ cd "$HOME/bin/" || exit
 
 # Download yt-dlp's compiled ffmpeg
 curl --request GET -sSL \
-    --url 'https://github.com/yt-dlp/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-linux64-gpl.tar.xz' \
-    --output "ffmpeg-master-latest-linux64-gpl.tar.xz"
-tar -xvf ffmpeg-master-latest-linux64-gpl.tar.xz -C "$HOME/bin/ffmpeg"
+    --url "https://github.com/yt-dlp/FFmpeg-Builds/releases/download/latest/$ffmpegVersion.tar.xz" \
+    --output "$ffmpegVersion.tar.xz"
+tar -xvf $ffmpegVersion.tar.xz -C "$HOME/bin/ffmpeg"
 
 # set user as owner of ~/bin/ and files within
 chown -R "$USER:$USER" "$HOME/bin/"
 
 # Move the ffmpeg executables to the root of $HOME/bin
-echo
+cd "$HOME/bin/" || exit
+echo ""
 echo "$HOME/bin/"
-echo
-mv "$HOME/bin/ffmpeg-master-latest-linux64-gpl/bin/*" "$HOME/bin/"
+echo ""
+echo "current dir: $(PWD)"
+echo "You should be in: $HOME/bin/"
+echo ""
+mv "$ffmpegVersion/bin/*" "$HOME/bin/"
+
+echo "list files in $HOME/bin/"
+ls -lha "$HOME/bin/"
 
 # Delete no longer needed folder files
-rm -fr ./ffmpeg/ ./ffmpeg-master-latest-linux64-gpl.tar.xz ./ffmpeg-master-latest-linux64-gpl
+rm -fr ./ffmpeg/ ./$ffmpegVersion.tar.xz ./$ffmpegVersion
