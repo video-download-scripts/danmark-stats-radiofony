@@ -20,7 +20,7 @@
 # script to function properly
 
 # Make sure PATH is present as not all distros have this by default
-PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+PATH="$HOME/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
 
 #set -e
 #set -x
