@@ -21,10 +21,30 @@
 PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
 # Variables
-# todo: reset ffmpegPath to match setup.sh
 ffmpegPath="$HOME/bin/ffmpeg"
-# ffmpegPath="$HOME/yt-dlp/ffmpeg"
 downloadDir="$HOME/Videos"
+
+title() {
+    # Extracting filename from info.info.json
+    yt-dlp "${line}" --no-download --write-info-json --ignore-config -o "info.%(ext)s"
+
+    jtitle="$(jq -r .title info.info.json)"
+    jseason="$(jq -r .season_number info.info.json)"
+    jepisode="$(jq -r .episode_number info.info.json)"
+
+    # todo: We can not combine the series and episodes variables into one
+    #  sentence... for now. We need to figure out how
+    if [ "$jepisode" != null ] && [ "$jseason" != null ]; then
+        filename="${jtitle} - S$jseason E$jepisode"
+    elif [ "$jepisode" == null ] && [ "$jseason" != null ]; then
+        filename="${jtitle} - S$jseason"
+    elif [ "$jepisode" == null ] && [ "$jseason" == null ]; then
+        # We assume this is a movie and not a series
+        filename="${jtitle}"
+    fi
+
+    find . -maxdepth 1 -mindepth 1 -type f -iname "info.*" -delete
+}
 
 # set PATH to includes user's private bin, if it exists, and before
 # default PATH
@@ -77,7 +97,8 @@ if [ -r "${sourceUri}" ]; then
 
     while read -r line; do
         # shellcheck disable=SC2086
-        filename="$(yt-dlp --restrict-filenames --print '%(title)s - S%(season_number)02dE%(episode_number)02d' ${line})"
+        # filename="$(yt-dlp --ignore-config --restrict-filenames --print '%(title)s - S%(season_number)02dE%(episode_number)02d' ${line})"
+        title
 
         # Download the audio and convert to aac
         yt-dlp -f "ba*" \
@@ -92,7 +113,8 @@ if [ -r "${sourceUri}" ]; then
             --abort-on-error \
             --ignore-config \
             --restrict-filenames \
-            -o "%(title)s - S%(season_number)02dE%(episode_number)02d.%(ext)s" "${line}"
+            -o "$filename.%(ext)s" "${line}"
+        # -o "%(title)s - S%(season_number)02dE%(episode_number)02d.%(ext)s" "${line}"
 
         # Download the video, subtitles and thumbnail
         yt-dlp -f "bv*" \
@@ -111,10 +133,11 @@ if [ -r "${sourceUri}" ]; then
             --abort-on-error \
             --ignore-config \
             --restrict-filenames \
-            -o "%(title)s - S%(season_number)02dE%(episode_number)02d.%(ext)s" "${line}"
+            -o "$filename.%(ext)s" "${line}"
+        # -o "%(title)s - S%(season_number)02dE%(episode_number)02d.%(ext)s" "${line}"
 
         # Merge the files into a mkv container
-        mkvmerge -o "$downloadDir/${filename}.mkv" \
+        mkvmerge -o "$downloadDir/${filename}".mkv \
             --language 0:eng "$downloadDir/${filename}.mp4" \
             --language 0:eng "$downloadDir/${filename}.m4a" \
             --language 0:dan "$downloadDir/${filename}.da_foreign.srt" \
