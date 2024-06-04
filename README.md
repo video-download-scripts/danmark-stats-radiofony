@@ -27,6 +27,15 @@ This project is inspired by [@0HAg0][0HAg0] in this [comment][comment]
 
 To use this script you need to run on a Linux distribution, that runs with bash.
 
+- [Curl](https://curl.se/)
+- [MkvToolNix][MkvToolNix] (mkvmerge)
+- [ffmpeg](https://github.com/yt-dlp/FFmpeg-Builds)
+  from [yt-dlp](https://github.com/yt-dlp/yt-dlp)
+- grep
+- jq
+- tar
+- yt-dlp
+
 ## Usage
 
 This script should be able to figure out whether you are downloading a series
@@ -75,4 +84,6 @@ in the first step wut URI's to be downloaded
 [0HAg0]: https://github.com/0HAg0
 
 [comment]: https://github.com/yt-dlp/yt-dlp/issues/3810#issuecomment-2094925139
+
+[MkvToolNix]: https://mkvtoolnix.download/ "MKVToolNix is a collection of tools for the Matroska media container format by Moritz Bunkus including mkvmerge."
 <!-- LINKS -->
