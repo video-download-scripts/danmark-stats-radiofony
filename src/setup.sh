@@ -38,6 +38,7 @@ fi
 ffmpegVersion="ffmpeg-master-latest-linux64-gpl" # DO NOT ADD EXTENSION
 USER="$(logname)"                                # http://support.matrix.lan/articles/REM-A-177
 HOME="/home/${USER}"
+workDir="$HOME/yt-dlp"
 GIT_DIR="$(git rev-parse --show-toplevel)"
 
 # Determine if this OS is Debian or Redhat based. This is required to now
@@ -121,27 +122,27 @@ fi
 
 # Make $HOME/bin/ directory to run local binaries
 
-mkdir -p "$HOME/bin/"
+mkdir -p "${workDir}/"
 
 # set PATH to includes user's private bin, if it exists, and before
 # default PATH
-if [ -d "$HOME/bin" ]; then
-    PATH="$HOME/bin:$PATH"
+if [ -d "${workDir}" ]; then
+    PATH="${workDir}:$PATH"
 fi
 
 # Download yt-dlp + yt-dlp ffmpeg variant to download encrypted contents from
 # Danmarks Radio
 
-cd "$HOME/bin/" || exit
+cd "${workDir}/" || exit
 
 # Download yt-dlp and set executive bit
 echo "Download yt-dlp and set executive bit"
 curl --request GET -sSL \
     --url 'https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp' \
     --output "$HOME/bin/yt-dlp"
-sudo chmod a+x "$HOME/bin/yt-dlp"
+sudo chmod a+x "${workDir}"
 
-cd "$HOME/bin/" || exit
+cd "${workDir}/" || exit
 
 # Download yt-dlp's compiled ffmpeg
 echo "Downloading ffmpeg"
@@ -150,27 +151,27 @@ curl --request GET -sSL \
     --output "$ffmpegVersion.tar.xz"
 
 echo "Unpacking ffmpeg"
-tar -xvf $ffmpegVersion.tar.xz -C "$HOME/bin/"
+tar -xvf $ffmpegVersion.tar.xz -C "${workDir}/"
 
 # set user as owner of ~/bin/ and files within
 echo "Changing ownership recursively on ~/bin"
-chown -R "$USER:$USER" "$HOME/bin/"
+chown -R "$USER:$USER" "${workDir}/"
 
 # Used for debugging
-#cd "$HOME/bin/" || exit
+#cd "${workDir}/" || exit
 #echo ""
-#echo "$HOME/bin/"
+#echo "${workDir}/"
 #echo ""
 #echo "current dir: ($PWD)"
-#echo "You should be in: $HOME/bin/"
+#echo "You should be in: ${workDir}/"
 #echo ""
 
-# Move the ffmpeg executables to the root of $HOME/bin
-mv "$ffmpegVersion/bin/"* "$HOME/bin/" # Asterix fails to drink his potion if put inside the ""
+# Move the ffmpeg executables to the root of ${workDir}
+mv "$ffmpegVersion/bin/"* "${workDir}/" # Asterix fails to drink his potion if put inside the ""
 
-#echo "list files in $HOME/bin/"
-#ls -lha "$HOME/bin/"
+#echo "list files in ${workDir}/"
+#ls -lha "${workDir}/"
 
 # Delete no longer needed folder files
 # shellcheck disable=SC2115
-rm -fr "$HOME/bin/$ffmpegVersion.tar.xz" "$HOME/bin/$ffmpegVersion"
+rm -fr "${workDir}/$ffmpegVersion.tar.xz" "${workDir}/$ffmpegVersion"

@@ -21,7 +21,7 @@
 PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
 # Variables
-ffmpegPath="$HOME/bin/ffmpeg"
+ffmpegPath="$HOME/yt-dlp/ffmpeg"
 downloadDir="$HOME/Videos"
 
 title() {
