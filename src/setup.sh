@@ -107,17 +107,17 @@ echo "Updating the OS"
 apt-fast update -yq
 
 echo "Installing dependencies"
-apt-fast install -yq curl tar python3.11 python3-pip python3-pip-whl mkvtoolnix
+apt-fast install -yq curl tar python3.12 python3-pip python3-pip-whl mkvtoolnix
 apt autoremove -yq
 
 # Install mypdns python module to boost download counter
 echo "(un)Install mypdns python module to boost download counter"
 if [ "$OS" == "ubuntu" ]; then
-    sudo -u "$USER" python3.11 -m pip install --user -r "$GIT_DIR/requirements.txt"
-    sudo -u "$USER" python3.11 -m pip uninstall mypdns --yes
+    sudo -u "$USER" python3.12 -m pip install --user -r "$GIT_DIR/requirements.txt"
+    sudo -u "$USER" python3.12 -m pip uninstall mypdns --yes
 elif [ "$OS" == debian ] || [ "$OS" == Debian ]; then
-    sudo -u "$USER" python3.11 -m pip install --user -r "$GIT_DIR/requirements.txt" --break-system-packages
-    sudo -u "$USER" python3.11 -m pip uninstall mypdns --yes --break-system-packages
+    sudo -u "$USER" python3.12 -m pip install --user -r "$GIT_DIR/requirements.txt" --break-system-packages
+    sudo -u "$USER" python3.12 -m pip uninstall mypdns --yes --break-system-packages
 fi
 
 # Make $HOME/bin/ directory to run local binaries

@@ -20,8 +20,15 @@
 # Make sure PATH is present as not all distros have this by default
 PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
+trap '{ rm -fr -- "$tempFile"; }' EXIT
+
+tempFile=$(mktemp /tmp/dr_tempfile.XXXXXX)
+
+exec 3>"tempFile1"
+exec 4<"tempFile1"
+
 # Variables
-ffmpegPath="$HOME/yt-dlp/ffmpeg"
+ffmpegPath="$HOME/.local/bin/ffmpeg"
 downloadDir="$HOME/Videos"
 
 title() {
@@ -50,6 +57,10 @@ title() {
 # default PATH
 if [ -d "$HOME/bin" ]; then
     PATH="$HOME/bin:$PATH"
+fi
+
+if [ -d "$HOME/.local/bin" ]; then
+    PATH="$HOME/.local/bin:$PATH"
 fi
 
 # Help text
@@ -88,73 +99,73 @@ fi
 read -erp "Location of URI list: " URI
 
 if [ -f "${URI}" ]; then
-    grep -vE '^($|#)' "${URI}" >"${URI}.tmp"
-    sourceUri="${URI}.tmp"
-fi
-
-if [ -r "${sourceUri}" ]; then
-    cd "$downloadDir/" || exit
-
-    while read -r line; do
-        # shellcheck disable=SC2086
-        # filename="$(yt-dlp --ignore-config --restrict-filenames --print '%(title)s - S%(season_number)02dE%(episode_number)02d' ${line})"
-        title
-
-        # Download the audio and convert to aac
-        yt-dlp -f "ba*" \
-            --downloader ffmpeg \
-            --ffmpeg-location "${ffmpegPath}" \
-            --abort-on-unavailable-fragments \
-            --no-keep-fragments \
-            --extract-audio \
-            --audio-format aac \
-            --audio-quality 0 \
-            -P "$downloadDir/" \
-            --abort-on-error \
-            --ignore-config \
-            --restrict-filenames \
-            -o "$filename.%(ext)s" "${line}"
-        # -o "%(title)s - S%(season_number)02dE%(episode_number)02d.%(ext)s" "${line}"
-
-        # Download the video, subtitles and thumbnail
-        yt-dlp -f "bv*" \
-            --downloader ffmpeg \
-            --ffmpeg-location "${ffmpegPath}" \
-            --abort-on-unavailable-fragments \
-            --no-keep-fragments \
-            --no-simulate \
-            --write-subs \
-            --no-embed-subs \
-            --convert-subs srt \
-            --sub-langs da_foreign \
-            --write-thumbnail \
-            --convert-thumbnails jpg \
-            -4 -c -P "$downloadDir/" \
-            --abort-on-error \
-            --ignore-config \
-            --restrict-filenames \
-            -o "$filename.%(ext)s" "${line}"
-        # -o "%(title)s - S%(season_number)02dE%(episode_number)02d.%(ext)s" "${line}"
-
-        # Merge the files into a mkv container
-        mkvmerge -o "$downloadDir/${filename}".mkv \
-            --language 0:eng "$downloadDir/${filename}.mp4" \
-            --language 0:eng "$downloadDir/${filename}.m4a" \
-            --language 0:dan "$downloadDir/${filename}.da_foreign.srt" \
-            --attach-file "$downloadDir/${filename}.jpg" \
-            --attachment-name "cover.jpg"
-
-        # Copy cover to jellyfin fanart
-        mv "$downloadDir/${filename}.jpg" "$downloadDir/${filename}-thumb.jpg"
-
-        # Cleanup the source files
-        rm -f "$downloadDir/${filename}".{m4a,mp4,*.srt}
-
-    done <"${sourceUri}"
+    sed -i 's/\/program\//\/se\//g;s/\/episode\//\/se\//g' "${URI}"
+    grep -vE '^($|#)' "${URI}" >"$tempFile"
+    sourceUri="$tempFile"
 else
-    echo "Could not locate given file"
+    echo "the source filewas not found: ${URI}"
     exit
 fi
+
+cd "$downloadDir/" || exit
+
+while read -r line; do
+    # shellcheck disable=SC2086
+    # filename="$(yt-dlp --ignore-config --restrict-filenames --print '%(title)s - S%(season_number)02dE%(episode_number)02d' ${line})"
+    title
+
+    # Download the audio and convert to aac
+    yt-dlp -f "ba*" \
+        --downloader ffmpeg \
+        --ffmpeg-location "${ffmpegPath}" \
+        --abort-on-unavailable-fragments \
+        --no-keep-fragments \
+        --extract-audio \
+        --audio-format aac \
+        --audio-quality 0 \
+        -P "$downloadDir/" \
+        --abort-on-error \
+        --ignore-config \
+        --restrict-filenames \
+        -o "$filename.%(ext)s" "${line}"
+    # -o "%(title)s - S%(season_number)02dE%(episode_number)02d.%(ext)s" "${line}"
+
+    # Download the video, subtitles and thumbnail
+    yt-dlp -f "bv*" \
+        --downloader ffmpeg \
+        --ffmpeg-location "${ffmpegPath}" \
+        --abort-on-unavailable-fragments \
+        --no-keep-fragments \
+        --no-simulate \
+        --write-subs \
+        --no-embed-subs \
+        --convert-subs srt \
+        --sub-langs da_foreign \
+        --write-thumbnail \
+        --convert-thumbnails jpg \
+        -4 -c -P "$downloadDir/" \
+        --abort-on-error \
+        --ignore-config \
+        --restrict-filenames \
+        -o "$filename.%(ext)s" "${line}"
+    # -o "%(title)s - S%(season_number)02dE%(episode_number)02d.%(ext)s" "${line}"
+
+    # Merge the files into a mkv container
+    mkvmerge -o "$downloadDir/${filename}".mkv \
+        --language 0:eng "$downloadDir/${filename}.mp4" \
+        --language 0:eng "$downloadDir/${filename}.m4a" \
+        --language 0:dan "$downloadDir/${filename}.da_foreign.srt" \
+        --attach-file "$downloadDir/${filename}.jpg" \
+        --attachment-name "cover.jpg"
+
+    # Copy cover to jellyfin fanart
+    mv "$downloadDir/${filename}.jpg" "$downloadDir/${filename}-thumb.jpg"
+
+    # Cleanup the source files
+    rm -f "$downloadDir/${filename}".{m4a,mp4,*.srt}
+    # rm -f "$downloadDir/${filename}".{m4a,*.srt}
+
+done <"${sourceUri}"
 
 # Cleanup the temp source file
 rm -f "${sourceUri}"
